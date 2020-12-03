@@ -1,0 +1,18 @@
+[package]
+name = "enerator"
+version = "0.1.0"
+authors = ["Jonathan Bowman <git@bowmanjd.com>"]
+keywords = ["markdown", "HTML", "sitegen"]
+description = "A simple static site generator in Rust."
+repository = "https://github.com/bowmanjd/enerator.rs"
+readme = "README.md"
+license = "Apache-2.0"
+categories = ["web-programming"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+clap = { version = "3.0.0-beta.2", features = ["yaml"] }
+pulldown-cmark = { version = "0.8", default-features = false, features = ["simd"] }
+syntect = "4.4"

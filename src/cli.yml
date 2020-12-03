@@ -1,0 +1,23 @@
+name: oxigen
+version: "0.1"
+author: Jonathan Bowman <git@bowmanjd.com>
+about: A simple static site generator
+args:
+    - config:
+        short: c
+        long: config
+        value_name: FILE
+        about: Sets a custom config file
+        takes_value: true
+    - verbose:
+        short: v
+        multiple: true
+        about: Sets the level of verbosity
+subcommands:
+    - build:
+        about: generate site
+        args:
+            - INPUT:
+                about: Sets the input file to use
+                required: true
+                index: 1
