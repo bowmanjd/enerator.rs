@@ -108,7 +108,17 @@ fn themes() {
 }
 
 fn css(theme: &str) -> String {
-    css_for_theme_with_class_style(&THEME_SET.themes[theme], CLASS_STYLE)
+    let mut styles = String::from("");
+    if let Some(t) = THEME_SET.themes.get(theme) {
+        styles = css_for_theme_with_class_style(t, CLASS_STYLE)
+    }
+    styles
+}
+
+fn write_css(theme: &str, dir: &str) {
+    let styles = css(theme);
+    let filename = format!("{}/{}.css", dir, theme);
+    fs::write(filename, styles).expect("Unable to write file");
 }
 
 fn main() {
@@ -127,10 +137,15 @@ fn main() {
     }
     if let Some(matches) = matches.subcommand_matches("css") {
         if let Some(t) = matches.value_of("theme") {
-            println!("{}", css(t));
-        }
-        if let Some(d) = matches.value_of("directory") {
-            println!("{}", d);
+            if let Some(d) = matches.value_of("directory") {
+                write_css(t, d);
+            } else {
+                println!("{}", css(t));
+            }
+        } else if let Some(d) = matches.value_of("directory") {
+            for theme in THEME_SET.themes.keys() {
+                write_css(theme, d);
+            }
         }
     }
 }
