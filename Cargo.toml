@@ -14,5 +14,6 @@ edition = "2018"
 
 [dependencies]
 clap = { version = "3.0.0-beta.2", features = ["yaml"] }
+lazy_static = "1.4.0"
 pulldown-cmark = { version = "0.8", default-features = false, features = ["simd"] }
 syntect = "4.4"

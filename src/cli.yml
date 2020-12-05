@@ -1,4 +1,4 @@
-name: oxigen
+name: enerator
 version: "0.1"
 author: Jonathan Bowman <git@bowmanjd.com>
 about: A simple static site generator
@@ -21,3 +21,19 @@ subcommands:
                 about: Sets the input file to use
                 required: true
                 index: 1
+    - syntaxes:
+        about: list supported syntaxes and extensions
+    - themes:
+        about: list supported themes
+    - css:
+        about: generate CSS for given theme
+        args:
+            - theme:
+                about: the name of the desired theme
+                index: 1
+            - directory:
+                short: d
+                long: dir
+                about: directory to output CSS files, autonamed by theme
+                takes_value: true
+                value_name: DIRECTORY

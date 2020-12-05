@@ -8,10 +8,23 @@
 #![warn(clippy::nursery)]
 
 use clap::{load_yaml, App};
+use lazy_static::lazy_static;
 use pulldown_cmark::{html, CodeBlockKind, Event, Options, Parser, Tag};
 use std::fs;
-use syntect::html::{ClassStyle, ClassedHTMLGenerator};
+use syntect::dumps::from_binary;
+use syntect::highlighting::ThemeSet;
+use syntect::html::{css_for_theme_with_class_style, ClassStyle, ClassedHTMLGenerator};
 use syntect::parsing::SyntaxSet;
+
+lazy_static! {
+    pub static ref SYNTAX_SET: SyntaxSet = {
+        let ss: SyntaxSet = from_binary(include_bytes!("../syntax/newlines.packdump"));
+        ss
+    };
+    pub static ref THEME_SET: ThemeSet = from_binary(include_bytes!("../syntax/all.themedump"));
+}
+
+const CLASS_STYLE: ClassStyle = ClassStyle::SpacedPrefixed { prefix: "syn-" };
 
 /// Reads markdown text from a file and converts to HTML.
 fn parse(filename: &str) -> String {
@@ -27,7 +40,7 @@ fn parse(filename: &str) -> String {
     let mut new_parser = Vec::new();
     let mut code_token = String::with_capacity(12);
     let mut to_highlight = String::new();
-    let syntax_set = SyntaxSet::load_defaults_newlines();
+    //let syntax_set = SyntaxSet::load_defaults_newlines();
 
     for event in parser {
         match event {
@@ -39,14 +52,14 @@ fn parse(filename: &str) -> String {
             Event::End(Tag::CodeBlock(_)) => {
                 if !code_token.is_empty() {
                     println!("{}", code_token);
-                    let syntax = syntax_set
+                    let syntax = SYNTAX_SET
                         .find_syntax_by_token(&code_token)
-                        .unwrap_or_else(|| syntax_set.find_syntax_plain_text());
+                        .unwrap_or_else(|| SYNTAX_SET.find_syntax_plain_text());
                     println!("{}", syntax.name);
                     let mut html_generator = ClassedHTMLGenerator::new_with_class_style(
                         syntax,
-                        &syntax_set,
-                        ClassStyle::Spaced,
+                        &SYNTAX_SET,
+                        CLASS_STYLE,
                     );
                     for line in to_highlight.lines() {
                         html_generator.parse_html_for_line(line);
@@ -79,21 +92,45 @@ fn parse(filename: &str) -> String {
     html_output
 }
 
+fn syntaxes() {
+    for syn in SYNTAX_SET.syntaxes() {
+        println!("{}", syn.name);
+        for ext in &syn.file_extensions {
+            println!("  {}", ext);
+        }
+    }
+}
+
+fn themes() {
+    for theme in THEME_SET.themes.keys() {
+        println!("{}", theme);
+    }
+}
+
+fn css(theme: &str) -> String {
+    css_for_theme_with_class_style(&THEME_SET.themes[theme], CLASS_STYLE)
+}
+
 fn main() {
     let yaml = load_yaml!("cli.yml");
     let matches = App::from(yaml).get_matches();
     if let Some(matches) = matches.subcommand_matches("build") {
         if let Some(f) = matches.value_of("INPUT") {
             println!("{}", parse(f));
-            println!("{}", f);
         }
     }
-
-    let syntax_set = SyntaxSet::load_defaults_newlines();
-    for syn in syntax_set.syntaxes() {
-        println!("{}", syn.name);
-        for ext in &syn.file_extensions {
-            println!("  {}", ext);
+    if matches.subcommand_matches("syntaxes").is_some() {
+        syntaxes();
+    }
+    if matches.subcommand_matches("themes").is_some() {
+        themes();
+    }
+    if let Some(matches) = matches.subcommand_matches("css") {
+        if let Some(t) = matches.value_of("theme") {
+            println!("{}", css(t));
+        }
+        if let Some(d) = matches.value_of("directory") {
+            println!("{}", d);
         }
     }
 }
