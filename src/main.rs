@@ -11,6 +11,7 @@ use clap::{load_yaml, App};
 use lazy_static::lazy_static;
 use pulldown_cmark::{html, CodeBlockKind, Event, Options, Parser, Tag};
 use std::fs;
+use std::path::PathBuf;
 use syntect::dumps::from_binary;
 use syntect::highlighting::ThemeSet;
 use syntect::html::{css_for_theme_with_class_style, ClassStyle, ClassedHTMLGenerator};
@@ -117,8 +118,16 @@ fn css(theme: &str) -> String {
 
 fn write_css(theme: &str, dir: &str) {
     let styles = css(theme);
-    let filename = format!("{}/{}.css", dir, theme);
-    fs::write(filename, styles).expect("Unable to write file");
+    let mut path = PathBuf::from(dir);
+    fs::create_dir_all(&path).expect("Cannot create directory.");
+    path.push(theme);
+    path.set_extension("css");
+
+    if let Some(p) = path.to_str() {
+        println!("{}", p);
+    }
+    //let filename = format!("{}/{}.css", dir, theme);
+    fs::write(path, styles).expect("Unable to write file");
 }
 
 fn main() {
