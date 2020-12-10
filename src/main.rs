@@ -126,35 +126,39 @@ fn write_css(theme: &str, dir: &str) {
     if let Some(p) = path.to_str() {
         println!("{}", p);
     }
-    //let filename = format!("{}/{}.css", dir, theme);
     fs::write(path, styles).expect("Unable to write file");
 }
 
 fn main() {
     let yaml = load_yaml!("cli.yml");
     let matches = App::from(yaml).get_matches();
-    if let Some(matches) = matches.subcommand_matches("build") {
-        if let Some(f) = matches.value_of("INPUT") {
+
+    match matches.subcommand() {
+        Some(("build", sub_m)) => {
+            let f = sub_m.value_of("INPUT").unwrap();
             println!("{}", parse(f));
         }
-    }
-    if matches.subcommand_matches("syntaxes").is_some() {
-        syntaxes();
-    }
-    if matches.subcommand_matches("themes").is_some() {
-        themes();
-    }
-    if let Some(matches) = matches.subcommand_matches("css") {
-        if let Some(t) = matches.value_of("theme") {
-            if let Some(d) = matches.value_of("directory") {
-                write_css(t, d);
-            } else {
-                println!("{}", css(t));
-            }
-        } else if let Some(d) = matches.value_of("directory") {
-            for theme in THEME_SET.themes.keys() {
-                write_css(theme, d);
+        Some(("syntaxes", _)) => {
+            syntaxes();
+        }
+        Some(("themes", _)) => {
+            themes();
+        }
+        Some(("css", sub_m)) => {
+            let theme_val = sub_m.value_of("theme");
+            let dir_val = sub_m.value_of("directory");
+            if let Some(theme) = theme_val {
+                if let Some(dir) = dir_val {
+                    write_css(theme, dir);
+                } else {
+                    println!("{}", css(theme));
+                }
+            } else if let Some(dir) = dir_val {
+                for theme in THEME_SET.themes.keys() {
+                    write_css(theme, dir);
+                }
             }
         }
+        _ => {}
     }
 }
