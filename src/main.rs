@@ -2,6 +2,7 @@
 //!
 //! A simple static site generator in Rust
 
+#![warn(missing_docs)]
 #![deny(clippy::all)]
 #![warn(clippy::pedantic)]
 #![warn(clippy::cargo)]
@@ -18,13 +19,16 @@ use syntect::html::{css_for_theme_with_class_style, ClassStyle, ClassedHTMLGener
 use syntect::parsing::SyntaxSet;
 
 lazy_static! {
+    /// Lazy loads syntaxes from Zola's syntax dump
     pub static ref SYNTAX_SET: SyntaxSet = {
         let ss: SyntaxSet = from_binary(include_bytes!("../syntax/newlines.packdump"));
         ss
     };
+    /// Lazy loads themes from Zola's theme dump
     pub static ref THEME_SET: ThemeSet = from_binary(include_bytes!("../syntax/all.themedump"));
 }
 
+/// Preset syntect `ClassStyle` with "syn-" prefix
 const CLASS_STYLE: ClassStyle = ClassStyle::SpacedPrefixed { prefix: "syn-" };
 
 /// Reads markdown text from a file and converts to HTML.
@@ -93,6 +97,7 @@ fn parse(filename: &str) -> String {
     html_output
 }
 
+/// Prints list of available syntaxes and associated extensions
 fn syntaxes() {
     for syn in SYNTAX_SET.syntaxes() {
         println!("{}", syn.name);
@@ -102,12 +107,14 @@ fn syntaxes() {
     }
 }
 
+/// Prints list of available themes
 fn themes() {
     for theme in THEME_SET.themes.keys() {
         println!("{}", theme);
     }
 }
 
+/// Generates CSS for a given theme
 fn css(theme: &str) -> String {
     let mut styles = String::from("");
     if let Some(t) = THEME_SET.themes.get(theme) {
@@ -116,6 +123,7 @@ fn css(theme: &str) -> String {
     styles
 }
 
+/// Writes a {theme}.css file for a given theme, in the designated directory
 fn write_css(theme: &str, dir: &str) {
     let styles = css(theme);
     let mut path = PathBuf::from(dir);
